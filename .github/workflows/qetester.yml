@@ -84,16 +84,18 @@ jobs:
       #     name: bin
       - name: Do QE Stuff
         run: |
-          echo "pwd:"
           pwd
           echo "setting aws credentials"
           mkdir ~/.aws
           ls -la
+          echo suites
+          ls -la suites
           cp creds/credentials ~/.aws/credentials
           # cat ~/.aws/credentials
-          sudo chmod +x bin/testctl
+          sudo chmod +x bin/test*
           echo -e "\n=============================================="
-          echo "Starting Testctl"
+          echo "Starting Test-Enqueue"
           TESTCTL_USER=foobar-nate
           bin/test-enqueue --parse-only suites/release-master-ce.yaml
+          echo "Starting Testctl"
           bin/testctl ps --user $TESTCTL_USER
