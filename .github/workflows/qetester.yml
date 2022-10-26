@@ -70,8 +70,9 @@ jobs:
     steps:
       - uses: actions/setup-python@v3
         with:
-          python-version: '3.9'
+          python-version: '3.7'
           architecture: 'x64'
+          cache: pip
 
       - name: Print Python debug info
         run: python --version
@@ -92,11 +93,10 @@ jobs:
           echo "setting aws credentials"
           mkdir ~/.aws
           ls -la
-          echo suites
-          ls -la suites
           cp creds/credentials ~/.aws/credentials
           # cat ~/.aws/credentials
           sudo chmod +x bin/test*
+          pip install future
           echo -e "\n=============================================="
           echo "Starting Test-Enqueue"
           TESTCTL_USER=foobar-nate
