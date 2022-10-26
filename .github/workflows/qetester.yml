@@ -76,6 +76,9 @@ jobs:
     steps:
       - name: Download Artifacts
         uses: actions/download-artifact@v3
+                
+      - name: Print Python debug info
+        run: python --version
       #   with:
       #     name: creds
       # - name: Download bins
