@@ -1,6 +1,6 @@
 name: Pytest Tests
 on:
-  push:
+  fork:
 jobs:
   tests:
     runs-on: ubuntu-latest
