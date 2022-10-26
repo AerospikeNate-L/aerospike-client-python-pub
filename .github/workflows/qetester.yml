@@ -97,7 +97,7 @@ jobs:
           cp creds/credentials ~/.aws/credentials
           # cat ~/.aws/credentials
           sudo chmod +x bin/test*
-          pip3 install future yaml
+          pip3 install future pyyaml
           echo -e "\n=============================================="
           echo "Starting Test-Enqueue"
           TESTCTL_USER=foobar-nate
