@@ -8,13 +8,7 @@ jobs:
       with:
         submodules: recursive
         
-    - uses: actions/setup-python@v3
-      with:
-        python-version: '3.9'
-        architecture: 'x64'
-        
-    - name: Print Python debug info
-      run: python --version
+
 
 
 # get dependencies..?
@@ -74,6 +68,13 @@ jobs:
     needs: setup
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/setup-python@v3
+        with:
+          python-version: '3.9'
+          architecture: 'x64'
+
+      - name: Print Python debug info
+        run: python --version
       - name: Download Artifacts
         uses: actions/download-artifact@v3
                 
