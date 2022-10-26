@@ -18,6 +18,13 @@ jobs:
 
 
 # get dependencies..?
+    - name: QE-Tools Checkout
+      uses: actions/checkout@v3
+      with:
+        repository: citrusleaf/qe-tools
+        token: ${{ secrets.GH_PAT }}
+        submodules: recursive
+        path: foo/qe-tools
     - name: QE-Config Checkout
       uses: actions/checkout@v3
       with:
@@ -30,6 +37,12 @@ jobs:
       with:
         name: creds
         path: foo/qe-config/services/containers/test-worker-v2/credentials
+
+    - name: Upload Suites
+      uses: actions/upload-artifact@v3
+      with:
+        name: suites
+        path: foo/qe-tools/test/suites
 
     - name: Get QE Binaries
       uses: actions/checkout@v3
@@ -81,4 +94,6 @@ jobs:
           sudo chmod +x bin/testctl
           echo -e "\n=============================================="
           echo "Starting Testctl"
-          bin/testctl ps
+          TESTCTL_USER=foobar-nate
+          bin/test-enqueue --parse-only suites/release-master-ce.yaml
+          bin/testctl ps --user $TESTCTL_USER
