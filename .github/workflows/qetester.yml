@@ -100,8 +100,8 @@ jobs:
           pip3 install future pyyaml
           echo -e "\n=============================================="
           echo "Starting Test-Enqueue"
-          TESTCTL_USER=foobar-nate
+          export TESTCTL_USER=foobar-nate
           export PATH=$PATH:$(pwd)/bin
-          test-enqueue --parse-only suites/release-master-ce.yaml
+          test-enqueue --run-fraction 1/2000 suites/release-master-ce.yaml
           echo "Starting Testctl"
           testctl ps --user $TESTCTL_USER
