@@ -22,7 +22,7 @@ jobs:
       uses: actions/checkout@v3
       with:
         repository: citrusleaf/qe-config
-        ssh-key: ${{ secrets.SSH_KEY }}
+        token: ${{ secrets.GH_PAT }}
         submodules: recursive
         path: foo/qe-config
     - name: Upload Credentials
@@ -35,7 +35,7 @@ jobs:
       uses: actions/checkout@v3
       with:
         repository: AerospikeNate-L/qe-binaries
-        ssh-key: ${{ secrets.SSH_KEY }}
+        token: ${{ secrets.GH_PAT }}
         path: foo/qe-bin
     - name: upload binaries
       uses: actions/upload-artifact@v3
