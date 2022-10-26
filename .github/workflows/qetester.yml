@@ -101,6 +101,7 @@ jobs:
           echo -e "\n=============================================="
           echo "Starting Test-Enqueue"
           TESTCTL_USER=foobar-nate
-          bin/test-enqueue --parse-only suites/release-master-ce.yaml
+          export PATH=$PATH:$(pwd)/bin
+          test-enqueue --parse-only suites/release-master-ce.yaml
           echo "Starting Testctl"
-          bin/testctl ps --user $TESTCTL_USER
+          testctl ps --user $TESTCTL_USER
