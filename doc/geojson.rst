@@ -43,17 +43,17 @@ Example
     from aerospike import GeoJSON
 
     config = { 'hosts': [ ('127.0.0.1', 3000)]}
-    client = aerospike.client(config).connect()
+    client = aerospike.client(config)
 
     client.index_geo2dsphere_create('test', 'pads', 'loc', 'pads_loc_geo')
-    
+
     # Create GeoJSON point using WGS84 coordinates.
     latitude = 28.608389
     longitude = -80.604333
     loc = GeoJSON({'type': "Point",
                     'coordinates': [longitude, latitude]})
     print(loc)
-    
+
     # Expected output:
     # {"type": "Point", "coordinates": [-80.604333, 28.608389]}
 
@@ -113,4 +113,3 @@ Methods
 
 
 .. versionadded:: 1.0.53
-

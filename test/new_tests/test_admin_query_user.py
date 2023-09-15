@@ -1,24 +1,19 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-import sys
 import time
 from .test_base_class import TestBaseClass
 from aerospike import exception as e
 
-aerospike = pytest.importorskip("aerospike")
-try:
-    import aerospike
-except:
-    print("Please install aerospike python client.")
-    sys.exit(1)
+import aerospike
 
 
+@pytest.mark.skip("client.admin_query_user() is deprecated")
 class TestQueryUser(TestBaseClass):
 
     pytestmark = pytest.mark.skipif(
-        not TestBaseClass.auth_in_use(),
-        reason="No user specified, may be not secured cluster.")
+        not TestBaseClass.auth_in_use(), reason="No user specified, may be not secured cluster."
+    )
 
     def setup_method(self, method):
         """
@@ -26,19 +21,18 @@ class TestQueryUser(TestBaseClass):
         """
         config = TestBaseClass.get_connection_config()
         TestQueryUser.Me = self
-        self.client = aerospike.client(config).connect(config['user'], config['password'])
+        self.client = aerospike.client(config).connect(config["user"], config["password"])
         try:
             self.client.admin_drop_user("example-test")
             time.sleep(1)
         except e.InvalidUser:
             pass
-        policy = {}
         user = "example-test"
         password = "foo2"
         roles = ["read-write", "sys-admin", "read"]
 
         try:
-            self.client.admin_create_user(user, password, roles, policy)
+            self.client.admin_create_user(user, password, roles)
             time.sleep(1)
         except e.UserExistsError:
             pass
@@ -49,10 +43,8 @@ class TestQueryUser(TestBaseClass):
         Teardown method
         """
 
-        policy = {}
-
         try:
-            self.client.admin_drop_user("example-test", policy)
+            self.client.admin_drop_user("example-test")
             time.sleep(1)
         except e.InvalidUser:
             pass
@@ -70,7 +62,7 @@ class TestQueryUser(TestBaseClass):
 
         time.sleep(2)
         user_details = self.client.admin_query_user(user)
-        assert user_details == ['read', 'read-write', 'sys-admin']
+        assert user_details == ["read", "read-write", "sys-admin"]
 
     def test_query_user_with_invalid_timeout_policy_value(self):
 
@@ -86,21 +78,20 @@ class TestQueryUser(TestBaseClass):
 
     def test_query_user_with_proper_timeout_policy_value(self):
 
-        policy = {'timeout': 30}
+        policy = {"timeout": 180000}
         user = "example-test"
 
         time.sleep(2)
         user_details = self.client.admin_query_user(user, policy)
 
-        assert user_details == ['read', 'read-write', 'sys-admin']
+        assert user_details == ["read", "read-write", "sys-admin"]
 
     def test_query_user_with_none_username(self):
 
-        policy = {'timeout': 30}
         user = None
 
         try:
-            self.client.admin_query_user(user, policy)
+            self.client.admin_query_user(user)
 
         except e.ParamError as exception:
             assert exception.code == -2
@@ -108,11 +99,10 @@ class TestQueryUser(TestBaseClass):
 
     def test_query_user_with_empty_username(self):
 
-        policy = {}
         user = ""
 
         try:
-            self.client.admin_query_user(user, policy)
+            self.client.admin_query_user(user)
 
         except e.InvalidUser as exception:
             assert exception.code == 60
@@ -120,11 +110,10 @@ class TestQueryUser(TestBaseClass):
 
     def test_query_user_with_nonexistent_username(self):
 
-        policy = {}
         user = "non-existent"
 
         try:
-            self.client.admin_query_user(user, policy)
+            self.client.admin_query_user(user)
 
         except e.InvalidUser as exception:
             assert exception.code == 60
@@ -132,11 +121,10 @@ class TestQueryUser(TestBaseClass):
 
     def test_query_user_with_no_roles(self):
 
-        policy = {}
         user = "example-test"
         roles = ["sys-admin", "read", "read-write"]
 
-        status = self.client.admin_revoke_roles(user, roles, policy)
+        status = self.client.admin_revoke_roles(user, roles)
         assert status == 0
         time.sleep(2)
 
@@ -146,18 +134,16 @@ class TestQueryUser(TestBaseClass):
 
     def test_query_user_with_extra_argument(self):
         """
-            Invoke query_user() with extra argument.
+        Invoke query_user() with extra argument.
         """
-        policy = {'timeout': 1000}
         with pytest.raises(TypeError) as typeError:
-            self.client.admin_query_user("foo", policy, "")
+            self.client.admin_query_user("foo", None, "")
 
-        assert "admin_query_user() takes at most 2 arguments (3 given)" in str(
-            typeError.value)
+        assert "admin_query_user() takes at most 2 arguments (3 given)" in str(typeError.value)
 
     def test_query_user_with_policy_as_string(self):
         """
-            Invoke query_user() with policy as string
+        Invoke query_user() with policy as string
         """
         policy = ""
         try:

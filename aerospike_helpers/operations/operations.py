@@ -13,14 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ##########################################################################
-'''
-Module with helper functions to create dictionaries consumed by
-the :mod:`aerospike.Client.operate` and :mod:`aerospike.Client.operate_ordered` methods for the aerospike.client class.
-'''
+"""
+Module with helper functions to create dictionaries used by:
+
+* :mod:`aerospike.Client.operate` and :mod:`aerospike.Client.operate_ordered`
+* Certain batch operations listed in :mod:`aerospike_helpers.batch.records`
+"""
 import warnings
 
 import aerospike
-
+from typing import Optional
 
 
 def read(bin_name):
@@ -51,11 +53,7 @@ def write(bin_name, write_item):
     Returns:
         A dictionary to be passed to operate or operate_ordered.
     """
-    return {
-        "op": aerospike.OPERATOR_WRITE,
-        "bin": bin_name,
-        "val": write_item
-    }
+    return {"op": aerospike.OPERATOR_WRITE, "bin": bin_name, "val": write_item}
 
 
 def delete():
@@ -84,11 +82,7 @@ def append(bin_name, append_item):
     Returns:
         A dictionary to be passed to operate or operate_ordered.
     """
-    return {
-        "op": aerospike.OPERATOR_APPEND,
-        "bin": bin_name,
-        "val": append_item
-    }
+    return {"op": aerospike.OPERATOR_APPEND, "bin": bin_name, "val": append_item}
 
 
 def prepend(bin_name, prepend_item):
@@ -102,11 +96,7 @@ def prepend(bin_name, prepend_item):
     Returns:
         A dictionary to be passed to operate or operate_ordered.
     """
-    return {
-        "op": aerospike.OPERATOR_PREPEND,
-        "bin": bin_name,
-        "val": prepend_item
-    }
+    return {"op": aerospike.OPERATOR_PREPEND, "bin": bin_name, "val": prepend_item}
 
 
 def increment(bin_name, amount):
@@ -121,14 +111,10 @@ def increment(bin_name, amount):
     Returns:
         A dictionary to be passed to operate or operate_ordered.
     """
-    return {
-        "op": aerospike.OPERATOR_INCR,
-        "bin": bin_name,
-        "val": amount
-    }
+    return {"op": aerospike.OPERATOR_INCR, "bin": bin_name, "val": amount}
 
 
-def touch(ttl: int=None):
+def touch(ttl: Optional[int] = None):
     """Create a touch operation dictionary.
 
     Using ttl here is deprecated. It should be set in the record metadata for the operate method.
@@ -142,7 +128,6 @@ def touch(ttl: int=None):
     """
     op_dict = {"op": aerospike.OPERATOR_TOUCH}
     if ttl:
-        warnings.warn(
-            "TTL should be specified in the meta dictionary for operate", DeprecationWarning)
+        warnings.warn("TTL should be specified in the meta dictionary for operate", DeprecationWarning)
         op_dict["val"] = ttl
     return op_dict

@@ -39,6 +39,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
+    "sphinxcontrib.spelling"
 ]
 napoleon_google_docstring = True
 intersphinx_mapping = {"python": ("https://docs.python.org/3.8", None)}
@@ -251,3 +252,19 @@ latex_documents = [
 # -- Options for sphinx.ext.todo -----------------------------------------------
 
 todo_include_todos = True
+
+# Spelling check
+
+spelling_ignore_pypi_package_names = True
+
+linkcheck_anchors_ignore = [
+    'truncate',
+    'proto-fd-idle-ms',
+    'xdr-set-filter',
+    'records'
+]
+
+# False positives
+linkcheck_ignore = [
+    "https://docs.aerospike.com/server/guide/security/index.html"
+]

@@ -14,8 +14,10 @@
 # limitations under the License.
 ##########################################################################
 """
-This module provides helper functions to produce dictionaries to be used with the
-:mod:`aerospike.Client.operate` and :mod:`aerospike.Client.operate_ordered` methods of the aerospike module.
+This module provides helper functions to produce dictionaries to be used with:
+
+* :mod:`aerospike.Client.operate` and :mod:`aerospike.Client.operate_ordered`
+* Certain batch operations listed in :mod:`aerospike_helpers.batch.records`
 
 Expression operations support reading and writing the result of Aerospike expressions.
 
@@ -32,13 +34,14 @@ EXPR_KEY = "expr"
 EXPR_FLAGS_KEY = "expr_flags"
 
 
-def expression_read(bin_name: str, expression: resources._BaseExpr, expression_read_flags: int=0):
+def expression_read(bin_name: str, expression: resources._BaseExpr, expression_read_flags: int = 0):
     """Create an expression read operation dictionary.
 
     Reads and returns the value produced by the evaluated expression.
 
     Args:
-        bin_name (str): The name of the bin to read from. Even if no bin is being read from, the value will be returned with this bin name.
+        bin_name (str): The name of the bin to read from. Even if no bin is being read from, the value will be returned
+            with this bin name.
         expression: A compiled Aerospike expression, see :ref:`aerospike_operation_helpers.expressions`.
         expression_read_flags (int): :ref:`aerospike_expression_read_flags` (default ``aerospike.EXP_READ_DEFAULT``)
     Returns:
@@ -52,7 +55,7 @@ def expression_read(bin_name: str, expression: resources._BaseExpr, expression_r
 
         from aerospike_helpers.operations import expression_operations as expressions
         from aerospike_helpers.expressions import *
-        
+
         expr = IntBin("balance").compile()
         ops = [
             expressions.expression_read("balance", expr)
@@ -67,13 +70,13 @@ def expression_read(bin_name: str, expression: resources._BaseExpr, expression_r
         OP_KEY: aerospike.OP_EXPR_READ,
         BIN_KEY: bin_name,
         EXPR_KEY: expression,
-        EXPR_FLAGS_KEY: expression_read_flags
+        EXPR_FLAGS_KEY: expression_read_flags,
     }
 
     return op_dict
 
 
-def expression_write(bin_name: str, expression: resources._BaseExpr, expression_write_flags: int=0):
+def expression_write(bin_name: str, expression: resources._BaseExpr, expression_write_flags: int = 0):
     """Create an expression write operation dictionary.
 
     Writes the value produced by the evaluated expression to the supplied bin.
@@ -81,7 +84,8 @@ def expression_write(bin_name: str, expression: resources._BaseExpr, expression_
     Args:
         bin_name (str): The name of the bin to write to.
         expression: A compiled Aerospike expression, see :ref:`aerospike_operation_helpers.expressions`.
-        expression_write_flags (int): :ref:`aerospike_expression_write_flags` such as ``aerospike.EXP_WRITE_UPDATE_ONLY | aerospike.EXP_WRITE_POLICY_NO_FAIL``   (default ``aerospike.EXP_WRITE_DEFAULT``).
+        expression_write_flags (int): :ref:`aerospike_expression_write_flags` such as ``aerospike.EXP_WRITE_UPDATE_ONLY
+            | aerospike.EXP_WRITE_POLICY_NO_FAIL``   (default ``aerospike.EXP_WRITE_DEFAULT``).
     Returns:
         A dictionary to be passed to operate or operate_ordered.
 
@@ -93,7 +97,7 @@ def expression_write(bin_name: str, expression: resources._BaseExpr, expression_
 
         from aerospike_helpers.operations import expression_operations as expressions
         from aerospike_helpers.expressions import *
-        
+
         expr = Add(IntBin("balance"), 50).compile()
         ops = [
             expressions.expression_write("balance", expr)
@@ -109,7 +113,7 @@ def expression_write(bin_name: str, expression: resources._BaseExpr, expression_
         OP_KEY: aerospike.OP_EXPR_WRITE,
         BIN_KEY: bin_name,
         EXPR_KEY: expression,
-        EXPR_FLAGS_KEY: expression_write_flags
+        EXPR_FLAGS_KEY: expression_write_flags,
     }
 
     return op_dict

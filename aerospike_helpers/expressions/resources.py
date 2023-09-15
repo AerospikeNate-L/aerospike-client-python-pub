@@ -1,12 +1,10 @@
-'''
+"""
 Resources used by all expressions.
-'''
+"""
 
-#from __future__ import annotations
+# from __future__ import annotations
 from itertools import chain
 from typing import List, Optional, Tuple, Union, Dict, Any
-import aerospike
-from aerospike_helpers import cdt_ctx
 
 
 class _Keys:
@@ -21,7 +19,7 @@ class _Keys:
     REGEX_OPTIONS_KEY = "regex_options"
 
 
-class _ExprOp: # TODO replace this with an enum
+class _ExprOp:  # TODO replace this with an enum
     UNKNOWN = 0
 
     EQ = 1
@@ -75,6 +73,7 @@ class _ExprOp: # TODO replace this with an enum
     META_KEY_EXISTS = 70
     META_SINCE_UPDATE_TIME = 71
     META_IS_TOMBSTONE = 72
+    META_MEMORY_SIZE = 73
 
     REC_KEY = 80
     BIN = 81
@@ -86,8 +85,8 @@ class _ExprOp: # TODO replace this with an enum
     LET = 125
     DEF = 126
 
+    _AS_EXP_CODE_AS_VAL = 128
     # virtual ops
-
     _AS_EXP_CODE_CALL_VOP_START = 139
     _AS_EXP_CODE_CDT_LIST_CRMOD = 140
     _AS_EXP_CODE_CDT_LIST_MOD = 141
@@ -109,6 +108,7 @@ class ResultType:
     """
     Flags used to indicate expression value_type.
     """
+
     BOOLEAN = 1
     INTEGER = 2
     STRING = 3
@@ -139,15 +139,12 @@ TypeChildren = Tuple[TypeChild, ...]
 
 TypeAny = Union[_AtomExpr, Any]
 
+
 class _BaseExpr(_AtomExpr):
-    _op = 0
-    # type: int
-    _rt = None
-    # type: 'TypeResultType'
-    _fixed = None
-    # type: 'TypeFixed'
-    _children = ()
-    # type: 'TypeChildren'
+    _op: int = 0
+    _rt: TypeResultType = None
+    _fixed: TypeFixed = None
+    _children: TypeChildren = ()
 
     def _get_op(self) -> TypeCompiledOp:
         return (self._op, self._rt, self._fixed, len(self._children))
@@ -182,18 +179,18 @@ class _BaseExpr(_AtomExpr):
 
     def _overload_op_unary(self, op_type: int):
         if self._op == op_type:
-            l = self._children
+            l = self._children  # noqa: E741
         else:
-            l = (self,)
+            l = (self,)  # noqa: E741
 
-        r = [] # No right operand.
+        r = []  # No right operand.
         return _create_operator_expression(l, r, op_type)
 
-    def _overload_op(self, right: 'TypeAny', op_type: int):
+    def _overload_op(self, right: "TypeAny", op_type: int):
         if self._op == op_type:
-            l = self._children
+            l = self._children  # noqa: E741
         else:
-            l = (self,)
+            l = (self,)  # noqa: E741
 
         if isinstance(right, _BaseExpr) and right._op == op_type:
             r = right._children
@@ -202,16 +199,16 @@ class _BaseExpr(_AtomExpr):
 
         return _create_operator_expression(l, r, op_type)
 
-    def _overload_op_va_args(self, right: 'TypeAny', op_type: int):
+    def _overload_op_va_args(self, right: "TypeAny", op_type: int):
         expr_end = _BaseExpr()
         expr_end._op = _ExprOp._AS_EXP_CODE_END_OF_VA_ARGS
 
         if self._op == op_type:
             # Last element of an expression with var args'
             # children will always be _AS_EXP_CODE_END_OF_VA_ARGS.
-            l = self._children[:-1]
+            l = self._children[:-1]  # noqa: E741
         else:
-            l = (self,)
+            l = (self,)  # noqa: E741
 
         if isinstance(right, _BaseExpr) and right._op == op_type:
             r = right._children[:-1]
@@ -219,7 +216,7 @@ class _BaseExpr(_AtomExpr):
             r = (right,)
 
         return _create_operator_expression(l, r + (expr_end,), op_type)
-    
+
     # unary operators
 
     def __abs__(self):
@@ -236,34 +233,35 @@ class _BaseExpr(_AtomExpr):
     def __add__(self, right):
         return self._overload_op_va_args(right, _ExprOp.ADD)
 
-    def __sub__(self, right: 'TypeAny'):
+    def __sub__(self, right: "TypeAny"):
         return self._overload_op_va_args(right, _ExprOp.SUB)
 
-    def __mul__(self, right: 'TypeAny'):
+    def __mul__(self, right: "TypeAny"):
         return self._overload_op_va_args(right, _ExprOp.MUL)
 
-    def __truediv__(self, right: 'TypeAny'):
+    def __truediv__(self, right: "TypeAny"):
         return self._overload_op_va_args(right, _ExprOp.DIV)
 
-    def __floordiv__(self, right: 'TypeAny'):
+    def __floordiv__(self, right: "TypeAny"):
         div_expr = self.__truediv__(right)
         return div_expr.__floor__()
 
-    def __pow__(self, right: 'TypeAny'):
+    def __pow__(self, right: "TypeAny"):
         return self._overload_op(right, _ExprOp.POW)
 
-    def __mod__(self, right: 'TypeAny'):
+    def __mod__(self, right: "TypeAny"):
         return self._overload_op(right, _ExprOp.MOD)
 
-def _create_operator_expression(left_children: 'TypeChildren', right_children: 'TypeChildren', op_type: int):
+
+def _create_operator_expression(left_children: "TypeChildren", right_children: "TypeChildren", op_type: int):
     new_expr = _BaseExpr()
     new_expr._op = op_type
     new_expr._children = (*left_children, *right_children)
     return new_expr
 
+
 class _GenericExpr(_BaseExpr):
-    
-    def __init__(self, op: _ExprOp, rt: 'TypeResultType', fixed: 'TypeFixed'):
+    def __init__(self, op: _ExprOp, rt: "TypeResultType", fixed: "TypeFixed"):
         self._op = op
         self._rt = rt
         self._fixed = fixed

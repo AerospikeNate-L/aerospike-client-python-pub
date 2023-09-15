@@ -45,7 +45,9 @@ DARWIN = 'Darwin' in PLATFORM or 'macOS' in PLATFORM
 CWD = os.path.abspath(os.path.dirname(__file__))
 STATIC_SSL = os.getenv('STATIC_SSL')
 SSL_LIB_PATH = os.getenv('SSL_LIB_PATH')
-EVENT_LIB = os.getenv('EVENT_LIB')
+# COVERAGE environment variable only meant for CI/CD workflow to generate C coverage data
+# Not for developers to use, unless you know what the workflow is doing!
+COVERAGE = os.getenv('COVERAGE')
 
 ################################################################################
 # GENERIC BUILD SETTINGS
@@ -56,7 +58,7 @@ include_dirs = ['src/include'] + \
     ['/usr/local/opt/openssl/include'] + \
     ['aerospike-client-c/modules/common/src/include']
 extra_compile_args = [
-    '-std=gnu99', '-g', '-Wall', '-fPIC', '-O1', '-DDEBUG',
+    '-std=gnu99', '-g', '-Wall', '-fPIC', '-DDEBUG', '-O1',
     '-fno-common', '-fno-strict-aliasing', '-Wno-strict-prototypes',
     '-D_FILE_OFFSET_BITS=64', '-D_REENTRANT',
     '-DMARCH_' + machine,
@@ -74,6 +76,20 @@ libraries = [
     'm',
     'z'
 ]
+
+if COVERAGE:
+    extra_compile_args.append('-fprofile-arcs')
+    extra_compile_args.append('-ftest-coverage')
+    extra_link_args.append('-lgcov')
+
+# TODO: this conflicts with the C client's DEBUG mode when building it
+# DEBUG = os.getenv('DEBUG')
+# if DEBUG:
+#     extra_compile_args.append("-O0")
+# else:
+#     # Release build
+#     extra_compile_args.append("-O1")
+
 ################################################################################
 # STATIC SSL LINKING BUILD SETTINGS
 ################################################################################
@@ -138,25 +154,6 @@ with io.open(os.path.join(CWD, 'VERSION'), "r", encoding='utf-8') as f:
 BASEPATH = os.path.dirname(os.path.abspath(__file__))
 CCLIENT_PATH = os.path.join(BASEPATH, 'aerospike-client-c')
 
-# if EVENT_LIB is None or EVENT_LIB == "":
-#     EVENT_LIB = "libevent"
-
-if EVENT_LIB is not None:
-    if EVENT_LIB == "libuv":
-        extra_compile_args = extra_compile_args + ['-DAS_EVENT_LIB_DEFINED']
-        library_dirs = library_dirs + ['/usr/local/lib/']
-        libraries = libraries + ['uv']
-    elif EVENT_LIB == "libevent":
-        extra_compile_args = extra_compile_args + ['-DAS_EVENT_LIB_DEFINED']
-        library_dirs = library_dirs + ['/usr/local/lib/']
-        libraries = libraries + ['event_core', 'event_pthreads']
-    elif EVENT_LIB == "libev":
-        extra_compile_args = extra_compile_args + ['-DAS_EVENT_LIB_DEFINED']
-        library_dirs = library_dirs + ['/usr/local/lib/']
-        libraries = libraries + ['ev']
-    else:
-        print("Building aerospike with no-async support\n")
-
 class CClientBuild(build):
 
     def run(self):
@@ -180,12 +177,6 @@ class CClientBuild(build):
             'make',
             'V=' + str(self.verbose),
         ]
-        if EVENT_LIB is not None:
-            cmd = [
-                'make',
-                'V=' + str(self.verbose),
-                'EVENT_LIB='+EVENT_LIB,
-            ] 
 
         def compile():
             print(cmd, library_dirs, libraries)
@@ -213,31 +204,7 @@ class CClientClean(clean):
 
 
 setup(
-    name='aerospike',
     version=version.strip(),
-    description='Aerospike Client Library for Python',
-    long_description=long_description,
-    author='Aerospike, Inc.',
-    author_email='info@aerospike.com',
-    url='http://aerospike.com',
-    license='Apache Software License',
-    keywords=['aerospike', 'nosql', 'database'],
-    classifiers=[
-        'License :: OSI Approved :: Apache Software License',
-        'Operating System :: POSIX :: Linux',
-        'Operating System :: MacOS :: MacOS X',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: Implementation :: CPython',
-        'Topic :: Database'
-    ],
-
-    # Package Data Files
-    zip_safe=False,
-    include_package_data=True,
-
     # Data files
     ext_modules=[
         Extension(
@@ -262,18 +229,13 @@ setup(
                 'src/main/client/exists.c',
                 'src/main/client/exists_many.c',
                 'src/main/client/get.c',
-                'src/main/client/get_async.c',
-                'src/main/client/put_async.c',
                 'src/main/client/get_many.c',
                 'src/main/client/batch_get_ops.c',
                 'src/main/client/select_many.c',
                 'src/main/client/info_single_node.c',
                 'src/main/client/info_random_node.c',
-                'src/main/client/info_node.c',
                 'src/main/client/info.c',
                 'src/main/client/put.c',
-                'src/main/client/operate_list.c',
-                'src/main/client/operate_map.c',
                 'src/main/client/operate.c',
                 'src/main/client/query.c',
                 'src/main/client/remove.c',
@@ -286,7 +248,6 @@ setup(
                 'src/main/client/sec_index.c',
                 'src/main/serializer.c',
                 'src/main/client/remove_bin.c',
-                'src/main/client/get_key_digest.c',
                 'src/main/query/type.c',
                 'src/main/query/apply.c',
                 'src/main/query/add_ops.c',
@@ -331,7 +292,8 @@ setup(
                 'src/main/client/batch_write.c',
                 'src/main/client/batch_operate.c',
                 'src/main/client/batch_remove.c',
-                'src/main/client/batch_apply.c'
+                'src/main/client/batch_apply.c',
+                'src/main/client/batch_read.c'
             ],
 
             # Compile
@@ -345,8 +307,17 @@ setup(
             extra_link_args=extra_link_args,
         )
     ],
+    package_data={
+        "aerospike-stubs": [
+            "__init__.pyi",
+            "aerospike.pyi",
+            "exception.pyi",
+            "predicates.pyi",
+        ]
+    },
     packages=['aerospike_helpers', 'aerospike_helpers.operations', 'aerospike_helpers.batch',
-              'aerospike_helpers.expressions', 'aerospike_helpers.awaitable'],
+              'aerospike_helpers.expressions',
+              'aerospike-stubs'],
 
     cmdclass={
         'build': CClientBuild,

@@ -13,13 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ##########################################################################
-'''
-Helper functions to create bit operation dictionary arguments for
-the :meth:`aerospike.operate` and :meth:`aerospike.operate_ordered` methods of the aerospike client.
+"""
+Helper functions to create bit operation dictionary arguments for:
+
+* :mod:`aerospike.Client.operate` and :mod:`aerospike.Client.operate_ordered`
+* Certain batch operations listed in :mod:`aerospike_helpers.batch.records`
 
     .. note:: Bitwise operations require server version >= 4.6.0
 
-Bit offsets are oriented left to right. Negative offsets are supported and start backwards from the end of the target bitmap.
+Bit offsets are oriented left to right. Negative offsets are supported and start backwards from the end of the target
+bitmap.
 
 Offset examples:
     * 0: leftmost bit in the map
@@ -35,7 +38,7 @@ Example::
     # Configure the client.
     config = {"hosts": [("127.0.0.1", 3000)]}
     # Create a client and connect it to the cluster.
-    client = aerospike.client(config).connect()
+    client = aerospike.client(config)
 
     key = ("test", "demo", "foo")
     five_ones_bin_name = "bitwise1"
@@ -81,7 +84,7 @@ Example::
     from aerospike_helpers.operations import bitwise_operations
 
     config = {'hosts': [('127.0.0.1', 3000)]}
-    client = aerospike.client(config).connect()
+    client = aerospike.client(config)
 
     key = ('test', 'demo', 'bit_example')
     five_one_blob = bytearray([1] * 5)
@@ -132,8 +135,8 @@ Example::
 
     client.close()
 
-.. seealso:: `Bits (Data Types) <https://www.aerospike.com/docs/guide/bitwise.html>`_.
-'''
+.. seealso:: `Bits (Data Types) <https://docs.aerospike.com/server/guide/data-types/blob#bitwise-operations>`_.
+"""
 import aerospike
 
 BIN_KEY = "bin"
@@ -154,7 +157,7 @@ SIGN_KEY = "sign"
 ACTION_KEY = "action"
 
 
-def bit_resize(bin_name: str, byte_size, policy=None, resize_flags: int=0):
+def bit_resize(bin_name: str, byte_size, policy=None, resize_flags: int = 0):
     """Creates a bit_resize_operation to be used with :meth:`aerospike.operate` or :meth:`aerospike.operate_ordered`.
 
     Change the size of a bytes bin stored in a record on the Aerospike Server.
@@ -163,7 +166,9 @@ def bit_resize(bin_name: str, byte_size, policy=None, resize_flags: int=0):
         bin_name (str): The name of the bin containing the map.
         byte_size (int): The new size of the bytes.
         policy (dict): The :ref:`bit_policy <aerospike_bit_policies>` dictionary. default: None.
-        resize_flags (int): :ref:`aerospike_bitwise_resize_flag` modifying the resize behavior (default ``aerospike.BIT_RESIZE_DEFAULT``), such as ``aerospike.BIT_RESIZE_GROW_ONLY | aerospike.BIT_RESIZE_FROM_FRONT``.
+        resize_flags (int): :ref:`aerospike_bitwise_resize_flag` modifying the resize behavior
+            (default ``aerospike.BIT_RESIZE_DEFAULT``), such as ``aerospike.BIT_RESIZE_GROW_ONLY |
+            aerospike.BIT_RESIZE_FROM_FRONT``.
 
     Returns:
         A dictionary usable in operate or operate_ordered. The format of the dictionary
@@ -174,7 +179,7 @@ def bit_resize(bin_name: str, byte_size, policy=None, resize_flags: int=0):
         BIN_KEY: bin_name,
         POLICY_KEY: policy,
         RESIZE_FLAGS_KEY: resize_flags,
-        BYTE_SIZE_KEY: byte_size
+        BYTE_SIZE_KEY: byte_size,
     }
 
 
@@ -198,7 +203,7 @@ def bit_remove(bin_name: str, byte_offset, byte_size, policy=None):
         BIN_KEY: bin_name,
         POLICY_KEY: policy,
         BYTE_OFFSET_KEY: byte_offset,
-        BYTE_SIZE_KEY: byte_size
+        BYTE_SIZE_KEY: byte_size,
     }
 
 
@@ -226,7 +231,7 @@ def bit_set(bin_name: str, bit_offset, bit_size, value_byte_size, value, policy=
         BIT_OFFSET_KEY: bit_offset,
         BIT_SIZE_KEY: bit_size,
         VALUE_BYTE_SIZE_KEY: value_byte_size,
-        VALUE_KEY: value
+        VALUE_KEY: value,
     }
 
 
@@ -244,12 +249,7 @@ def bit_count(bin_name: str, bit_offset, bit_size):
         A dictionary usable in operate or operate_ordered. The format of the dictionary
         should be considered an internal detail, and subject to change.
     """
-    return {
-        OP_KEY: aerospike.OP_BIT_COUNT,
-        BIN_KEY: bin_name,
-        BIT_OFFSET_KEY: bit_offset,
-        BIT_SIZE_KEY: bit_size
-    }
+    return {OP_KEY: aerospike.OP_BIT_COUNT, BIN_KEY: bin_name, BIT_OFFSET_KEY: bit_offset, BIT_SIZE_KEY: bit_size}
 
 
 def bit_add(bin_name: str, bit_offset, bit_size, value, sign, action, policy=None):
@@ -269,8 +269,8 @@ def bit_add(bin_name: str, bit_offset, bit_size, value, sign, action, policy=Non
         policy (dict): The :ref:`bit_policy <aerospike_bit_policies>` dictionary. default: None.
 
     Returns:
-        A dictionary usable in :meth:`~aerospike.Client.operate` or :meth:`~aerospike.Client.operate_ordered`. The format of the dictionary
-        should be considered an internal detail, and subject to change.
+        A dictionary usable in :meth:`~aerospike.Client.operate` or :meth:`~aerospike.Client.operate_ordered`. The
+        format of the dictionary should be considered an internal detail, and subject to change.
     """
     return {
         OP_KEY: aerospike.OP_BIT_ADD,
@@ -280,7 +280,7 @@ def bit_add(bin_name: str, bit_offset, bit_size, value, sign, action, policy=Non
         BIT_SIZE_KEY: bit_size,
         VALUE_KEY: value,
         SIGN_KEY: sign,
-        ACTION_KEY: action
+        ACTION_KEY: action,
     }
 
 
@@ -299,8 +299,8 @@ def bit_and(bin_name: str, bit_offset, bit_size, value_byte_size, value, policy=
         policy (dict): The :ref:`bit_policy <aerospike_bit_policies>` dictionary. default: None.
 
     Returns:
-        A dictionary usable in :meth:`~aerospike.Client.operate` or :meth:`~aerospike.Client.operate_ordered`. The format of the dictionary
-        should be considered an internal detail, and subject to change.
+        A dictionary usable in :meth:`~aerospike.Client.operate` or :meth:`~aerospike.Client.operate_ordered`. The
+        format of the dictionary should be considered an internal detail, and subject to change.
     """
     return {
         OP_KEY: aerospike.OP_BIT_AND,
@@ -309,7 +309,7 @@ def bit_and(bin_name: str, bit_offset, bit_size, value_byte_size, value, policy=
         BIT_OFFSET_KEY: bit_offset,
         BIT_SIZE_KEY: bit_size,
         VALUE_BYTE_SIZE_KEY: value_byte_size,
-        VALUE_KEY: value
+        VALUE_KEY: value,
     }
 
 
@@ -324,15 +324,10 @@ def bit_get(bin_name: str, bit_offset, bit_size):
         bit_size (int): How many bits to get.
 
     Returns:
-        A dictionary usable in :meth:`~aerospike.Client.operate` or :meth:`~aerospike.Client.operate_ordered`. The format of the dictionary
-        should be considered an internal detail, and subject to change.
+        A dictionary usable in :meth:`~aerospike.Client.operate` or :meth:`~aerospike.Client.operate_ordered`. The
+        format of the dictionary should be considered an internal detail, and subject to change.
     """
-    return {
-        OP_KEY: aerospike.OP_BIT_GET,
-        BIN_KEY: bin_name,
-        BIT_OFFSET_KEY: bit_offset,
-        BIT_SIZE_KEY: bit_size
-    }
+    return {OP_KEY: aerospike.OP_BIT_GET, BIN_KEY: bin_name, BIT_OFFSET_KEY: bit_offset, BIT_SIZE_KEY: bit_size}
 
 
 def bit_get_int(bin_name: str, bit_offset, bit_size, sign):
@@ -348,15 +343,15 @@ def bit_get_int(bin_name: str, bit_offset, bit_size, sign):
         sign (bool): True: Treat read value as signed. False: treat read value as unsigned.
 
     Returns:
-        A dictionary usable in :meth:`~aerospike.Client.operate` or :meth:`~aerospike.Client.operate_ordered`. The format of the dictionary
-        should be considered an internal detail, and subject to change.
+        A dictionary usable in :meth:`~aerospike.Client.operate` or :meth:`~aerospike.Client.operate_ordered`. The
+        format of the dictionary should be considered an internal detail, and subject to change.
     """
     return {
         OP_KEY: aerospike.OP_BIT_GET_INT,
         BIN_KEY: bin_name,
         BIT_OFFSET_KEY: bit_offset,
         BIT_SIZE_KEY: bit_size,
-        SIGN_KEY: sign
+        SIGN_KEY: sign,
     }
 
 
@@ -375,8 +370,8 @@ def bit_insert(bin_name: str, byte_offset, value_byte_size, value, policy=None):
 
 
     Returns:
-        A dictionary usable in :meth:`~aerospike.Client.operate` or :meth:`~aerospike.Client.operate_ordered`. The format of the dictionary
-        should be considered an internal detail, and subject to change.
+        A dictionary usable in :meth:`~aerospike.Client.operate` or :meth:`~aerospike.Client.operate_ordered`. The
+        format of the dictionary should be considered an internal detail, and subject to change.
     """
     return {
         OP_KEY: aerospike.OP_BIT_INSERT,
@@ -384,14 +379,14 @@ def bit_insert(bin_name: str, byte_offset, value_byte_size, value, policy=None):
         BYTE_OFFSET_KEY: byte_offset,
         VALUE_BYTE_SIZE_KEY: value_byte_size,
         VALUE_KEY: value,
-        POLICY_KEY: policy
+        POLICY_KEY: policy,
     }
 
 
 def bit_lscan(bin_name: str, bit_offset, bit_size, value):
     """Creates a bit_lscan_operation.
 
-    Server returns an integer representing the bit offset of the first occurence
+    Server returns an integer representing the bit offset of the first occurrence
     of the specified value bit. Starts scanning at bit_offset for bit_size. Returns
     -1 if value not found.
 
@@ -402,15 +397,15 @@ def bit_lscan(bin_name: str, bit_offset, bit_size, value):
         value (bool): True: look for 1, False: look for 0.
 
     Returns:
-        A dictionary usable in :meth:`~aerospike.Client.operate` or :meth:`~aerospike.Client.operate_ordered`. The format of the dictionary
-        should be considered an internal detail, and subject to change.
+        A dictionary usable in :meth:`~aerospike.Client.operate` or :meth:`~aerospike.Client.operate_ordered`. The
+        format of the dictionary should be considered an internal detail, and subject to change.
     """
     return {
         OP_KEY: aerospike.OP_BIT_LSCAN,
         BIN_KEY: bin_name,
         BIT_OFFSET_KEY: bit_offset,
         BIT_SIZE_KEY: bit_size,
-        VALUE_KEY: value
+        VALUE_KEY: value,
     }
 
 
@@ -428,8 +423,8 @@ def bit_lshift(bin_name: str, bit_offset, bit_size, shift, policy=None):
         policy (dict): The :ref:`bit_policy <aerospike_bit_policies>` dictionary. default: None.
 
     Returns:
-        A dictionary usable in :meth:`~aerospike.Client.operate` or :meth:`~aerospike.Client.operate_ordered`. The format of the dictionary
-        should be considered an internal detail, and subject to change.
+        A dictionary usable in :meth:`~aerospike.Client.operate` or :meth:`~aerospike.Client.operate_ordered`. The
+        format of the dictionary should be considered an internal detail, and subject to change.
     """
     return {
         OP_KEY: aerospike.OP_BIT_LSHIFT,
@@ -437,7 +432,7 @@ def bit_lshift(bin_name: str, bit_offset, bit_size, shift, policy=None):
         BIT_OFFSET_KEY: bit_offset,
         BIT_SIZE_KEY: bit_size,
         VALUE_KEY: shift,
-        POLICY_KEY: policy
+        POLICY_KEY: policy,
     }
 
 
@@ -454,15 +449,15 @@ def bit_not(bin_name: str, bit_offset, bit_size, policy=None):
         policy (dict): The :ref:`bit_policy <aerospike_bit_policies>` dictionary. default: None.
 
     Returns:
-        A dictionary usable in :meth:`~aerospike.Client.operate` or :meth:`~aerospike.Client.operate_ordered`. The format of the dictionary
-        should be considered an internal detail, and subject to change.
+        A dictionary usable in :meth:`~aerospike.Client.operate` or :meth:`~aerospike.Client.operate_ordered`. The
+        format of the dictionary should be considered an internal detail, and subject to change.
     """
     return {
         OP_KEY: aerospike.OP_BIT_NOT,
         BIN_KEY: bin_name,
         BIT_OFFSET_KEY: bit_offset,
         BIT_SIZE_KEY: bit_size,
-        POLICY_KEY: policy
+        POLICY_KEY: policy,
     }
 
 
@@ -483,8 +478,8 @@ def bit_or(bin_name: str, bit_offset, bit_size, value_byte_size, value, policy=N
         policy (dict): The :ref:`bit_policy <aerospike_bit_policies>` dictionary. default: None.
 
     Returns:
-        A dictionary usable in :meth:`~aerospike.Client.operate` or :meth:`~aerospike.Client.operate_ordered`. The format of the dictionary
-        should be considered an internal detail, and subject to change.
+        A dictionary usable in :meth:`~aerospike.Client.operate` or :meth:`~aerospike.Client.operate_ordered`. The
+        format of the dictionary should be considered an internal detail, and subject to change.
     """
     return {
         OP_KEY: aerospike.OP_BIT_OR,
@@ -493,14 +488,14 @@ def bit_or(bin_name: str, bit_offset, bit_size, value_byte_size, value, policy=N
         BIT_OFFSET_KEY: bit_offset,
         BIT_SIZE_KEY: bit_size,
         VALUE_BYTE_SIZE_KEY: value_byte_size,
-        VALUE_KEY: value
+        VALUE_KEY: value,
     }
 
 
 def bit_rscan(bin_name: str, bit_offset, bit_size, value):
     """Creates a bit_rscan_operation.
 
-    Server returns an integer representing the bit offset of the last occurence
+    Server returns an integer representing the bit offset of the last occurrence
     of the specified value bit. Starts scanning at bit_offset for bit_size. Returns
     -1 if value not found.
 
@@ -511,15 +506,15 @@ def bit_rscan(bin_name: str, bit_offset, bit_size, value):
         value (bool): True: Look for 1, False: look for 0.
 
     Returns:
-        A dictionary usable in :meth:`~aerospike.Client.operate` or :meth:`~aerospike.Client.operate_ordered`. The format of the dictionary
-        should be considered an internal detail, and subject to change.
+        A dictionary usable in :meth:`~aerospike.Client.operate` or :meth:`~aerospike.Client.operate_ordered`. The
+        format of the dictionary should be considered an internal detail, and subject to change.
     """
     return {
         OP_KEY: aerospike.OP_BIT_RSCAN,
         BIN_KEY: bin_name,
         BIT_OFFSET_KEY: bit_offset,
         BIT_SIZE_KEY: bit_size,
-        VALUE_KEY: value
+        VALUE_KEY: value,
     }
 
 
@@ -537,8 +532,8 @@ def bit_rshift(bin_name: str, bit_offset, bit_size, shift, policy=None):
         policy (dict): The :ref:`bit_policy <aerospike_bit_policies>` dictionary. default: None.
 
     Returns:
-        A dictionary usable in :meth:`~aerospike.Client.operate` or :meth:`~aerospike.Client.operate_ordered`. The format of the dictionary
-        should be considered an internal detail, and subject to change.
+        A dictionary usable in :meth:`~aerospike.Client.operate` or :meth:`~aerospike.Client.operate_ordered`. The
+        format of the dictionary should be considered an internal detail, and subject to change.
     """
     return {
         OP_KEY: aerospike.OP_BIT_RSHIFT,
@@ -546,7 +541,7 @@ def bit_rshift(bin_name: str, bit_offset, bit_size, shift, policy=None):
         BIT_OFFSET_KEY: bit_offset,
         BIT_SIZE_KEY: bit_size,
         VALUE_KEY: shift,
-        POLICY_KEY: policy
+        POLICY_KEY: policy,
     }
 
 
@@ -569,8 +564,8 @@ def bit_subtract(bin_name: str, bit_offset, bit_size, value, sign, action, polic
         policy (dict): The :ref:`bit_policy <aerospike_bit_policies>` dictionary. default: None.
 
     Returns:
-        A dictionary usable in :meth:`~aerospike.Client.operate` or :meth:`~aerospike.Client.operate_ordered`. The format of the dictionary
-        should be considered an internal detail, and subject to change.
+        A dictionary usable in :meth:`~aerospike.Client.operate` or :meth:`~aerospike.Client.operate_ordered`. The
+        format of the dictionary should be considered an internal detail, and subject to change.
     """
     return {
         OP_KEY: aerospike.OP_BIT_SUBTRACT,
@@ -580,7 +575,7 @@ def bit_subtract(bin_name: str, bit_offset, bit_size, value, sign, action, polic
         BIT_SIZE_KEY: bit_size,
         VALUE_KEY: value,
         SIGN_KEY: sign,
-        ACTION_KEY: action
+        ACTION_KEY: action,
     }
 
 
@@ -599,8 +594,8 @@ def bit_xor(bin_name: str, bit_offset, bit_size, value_byte_size, value, policy=
         policy (dict): The :ref:`bit_policy <aerospike_bit_policies>` dictionary. default: None.
 
     Returns:
-        A dictionary usable in :meth:`~aerospike.Client.operate` or :meth:`~aerospike.Client.operate_ordered`. The format of the dictionary
-        should be considered an internal detail, and subject to change.
+        A dictionary usable in :meth:`~aerospike.Client.operate` or :meth:`~aerospike.Client.operate_ordered`. The
+        format of the dictionary should be considered an internal detail, and subject to change.
     """
     return {
         OP_KEY: aerospike.OP_BIT_XOR,
@@ -609,5 +604,5 @@ def bit_xor(bin_name: str, bit_offset, bit_size, value_byte_size, value, policy=
         BIT_OFFSET_KEY: bit_offset,
         BIT_SIZE_KEY: bit_size,
         VALUE_BYTE_SIZE_KEY: value_byte_size,
-        VALUE_KEY: value
+        VALUE_KEY: value,
     }

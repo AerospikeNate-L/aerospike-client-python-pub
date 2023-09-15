@@ -1,24 +1,18 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-import sys
 import time
 from .test_base_class import TestBaseClass
 from aerospike import exception as e
 
-aerospike = pytest.importorskip("aerospike")
-try:
-    import aerospike
-except:
-    print("Please install aerospike python client.")
-    sys.exit(1)
+import aerospike
 
 
 class TestQueryUsersInfo(TestBaseClass):
 
     pytestmark = pytest.mark.skipif(
-        not TestBaseClass.auth_in_use(),
-        reason="No user specified, may not be secured cluster.")
+        not TestBaseClass.auth_in_use(), reason="No user specified, may not be secured cluster."
+    )
 
     def setup_method(self, method):
         """
@@ -26,20 +20,19 @@ class TestQueryUsersInfo(TestBaseClass):
         """
         config = TestBaseClass.get_connection_config()
         TestQueryUsersInfo.Me = self
-        self.client = aerospike.client(config).connect(config['user'], config['password'])
+        self.client = aerospike.client(config).connect(config["user"], config["password"])
 
         try:
             self.client.admin_drop_user("example-test")
             time.sleep(2)
         except e.InvalidUser:
             pass
-        policy = {}
         user = "example-test"
         password = "foo2"
         roles = ["read-write", "sys-admin", "read"]
 
         try:
-            self.client.admin_create_user(user, password, roles, policy)
+            self.client.admin_create_user(user, password, roles)
             time.sleep(2)
         except e.UserExistsError:
             pass
@@ -50,11 +43,9 @@ class TestQueryUsersInfo(TestBaseClass):
         Teardown method
         """
 
-        policy = {}
-
         try:
-            self.client.admin_drop_user("example-test", policy)
-        except:
+            self.client.admin_drop_user("example-test")
+        except Exception:
             pass
         self.client.close()
 
@@ -63,8 +54,12 @@ class TestQueryUsersInfo(TestBaseClass):
         time.sleep(2)
         user_details = self.client.admin_query_users_info()
 
-        assert user_details.get(
-            'example-test').get('roles') == ['read', 'read-write', 'sys-admin']
+        # Usage test; doesn't actually test if the server records user data
+        user_details = user_details.get("example-test")
+        assert user_details.get("roles") == ["read", "read-write", "sys-admin"]
+        assert user_details.get("read_info") == 0
+        assert user_details.get("write_info") == 0
+        assert user_details.get("conns_in_use") == 0
 
     def test_query_users_info_with_invalid_timeout_policy_value(self):
 
@@ -79,41 +74,37 @@ class TestQueryUsersInfo(TestBaseClass):
 
     def test_query_users_info_with_proper_timeout_policy_value(self):
 
-        policy = {'timeout': 50}
+        policy = {"timeout": 180000}
 
         user_details = self.client.admin_query_users_info(policy)
 
-        assert user_details.get(
-            'example-test').get('roles') == ['read', 'read-write', 'sys-admin']
+        assert user_details.get("example-test").get("roles") == ["read", "read-write", "sys-admin"]
 
     def test_query_users_info_with_no_roles(self):
 
-        policy = {}
         user = "example-test"
         roles = ["sys-admin", "read", "read-write"]
 
-        status = self.client.admin_revoke_roles(user, roles, policy)
+        status = self.client.admin_revoke_roles(user, roles)
         assert status == 0
         time.sleep(2)
 
-        user_details = self.client.admin_query_users_info(policy)
+        user_details = self.client.admin_query_users_info()
 
-        assert user_details.get('example-test').get('roles') == []
+        assert user_details.get("example-test").get("roles") == []
 
     def test_query_users_info_with_extra_argument(self):
         """
-            Invoke query_users() with extra argument.
+        Invoke query_users() with extra argument.
         """
-        policy = {'timeout': 1000}
         with pytest.raises(TypeError) as typeError:
-            self.client.admin_query_users_info(policy, "")
+            self.client.admin_query_users_info(None, "")
 
-        assert "admin_query_users_info() takes at most 1 argument (2 given)" in str(
-            typeError.value)
+        assert "admin_query_users_info() takes at most 1 argument (2 given)" in str(typeError.value)
 
     def test_query_users_info_with_policy_as_string(self):
         """
-            Invoke query_users() with policy as string
+        Invoke query_users() with policy as string
         """
         policy = ""
         try:
