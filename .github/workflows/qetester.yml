@@ -1,0 +1,107 @@
+name: QE Tests Initiating..
+on: push
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+        
+
+
+
+# get dependencies..?
+    - name: QE-Tools Checkout
+      uses: actions/checkout@v3
+      with:
+        repository: citrusleaf/qe-tools
+        token: ${{ secrets.GH_PAT }}
+        submodules: recursive
+        path: foo/qe-tools
+    - name: QE-Config Checkout
+      uses: actions/checkout@v3
+      with:
+        repository: citrusleaf/qe-config
+        token: ${{ secrets.GH_PAT }}
+        submodules: recursive
+        path: foo/qe-config
+    - name: Upload Credentials
+      uses: actions/upload-artifact@v3
+      with:
+        name: creds
+        path: foo/qe-config/services/containers/test-worker-v2/credentials
+
+    - name: Upload Suites
+      uses: actions/upload-artifact@v3
+      with:
+        name: suites
+        path: foo/qe-tools/test/suites
+
+    - name: Get QE Binaries
+      uses: actions/checkout@v3
+      with:
+        repository: AerospikeNate-L/qe-binaries
+        token: ${{ secrets.GH_PAT }}
+        path: foo/qe-bin
+    - name: upload binaries
+      uses: actions/upload-artifact@v3
+      with:
+        name: bin
+        path: foo/qe-bin
+    
+#   # get-testctl:
+#   #   name: do qe-tool stuff
+#   #   runs-on: ubuntu-latest
+#   #   needs: setup
+#   #   steps:
+#   #     - run: |
+#   #         curl -Lo testctl https://drive.google.com/file/d/13I6fPmeQrW-jX284l7xO4Yvqn7zgFyS5/view?usp=sharing
+#   #         sudo chmod +x testctl
+#   #         ls -la
+#   #     - name: Upload testctl Artifact
+#   #       uses: actions/upload-artifact@v3
+#   #       with:
+#   #         name: testctl.bin
+#   #         path: testctl
+  tests:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v3
+        with:
+          python-version: '3.7'
+          architecture: 'x64'
+#           cache: pip
+#           cache-dependency-path: '**/setup.py'
+
+      - name: Print Python debug info
+        run: python --version
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+                
+      - name: Print Python debug info
+        run: python --version
+      #   with:
+      #     name: creds
+      # - name: Download bins
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: bin
+      - name: Do QE Stuff
+        run: |
+          pwd
+          echo "setting aws credentials"
+          mkdir ~/.aws
+          ls -la
+          cp creds/credentials ~/.aws/credentials
+          # cat ~/.aws/credentials
+          sudo chmod +x bin/test*
+          pip3 install future pyyaml
+          echo -e "\n=============================================="
+          echo "Starting Test-Enqueue"
+          export TESTCTL_USER=foobar-nate
+          export PATH=$PATH:$(pwd)/bin
+          test-enqueue --run-fraction 1/2000 suites/release-master-ce.yaml
+          echo "Starting Testctl"
+          testctl ps --user $TESTCTL_USER
